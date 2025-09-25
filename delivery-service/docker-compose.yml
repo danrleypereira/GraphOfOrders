@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  delivery-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: delivery-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgreSQL: "Host=postgres;Database=delivery;Username=postgres;Password=postgres"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - delivery-network
+
+networks:
+  delivery-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
