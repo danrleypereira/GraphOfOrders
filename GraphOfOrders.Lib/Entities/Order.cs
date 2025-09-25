@@ -10,14 +10,14 @@ namespace GraphOfOrders.Lib.Entities
         public int CustomerId { get; set; }  // Foreign key
         public DateTime OrderDate { get; set; }
         
-        // Delivery fields
-        public int? DeliverPersonId { get; set; }  // Foreign key (nullable - pode não ter entregador ainda)
-        public DateTime? DeliveryDate { get; set; }
-        public string DeliveryStatus { get; set; } = "Pending";  // "Pending", "InTransit", "Delivered"
+        // Delivery fields moved to delivery-service
+        // public int? DeliverPersonId { get; set; }
+        // public DateTime? DeliveryDate { get; set; }
+        // public string DeliveryStatus { get; set; } = "Pending";
 
         // Navigation properties
         public virtual Brand Brand { get; set; }
         public virtual Customer Customer { get; set; }
-        public virtual DeliverPerson DeliverPerson { get; set; }
+        // DeliverPerson navigation moved to delivery-service
     }
 }

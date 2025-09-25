@@ -9,12 +9,6 @@ namespace GraphOfOrders.Lib.DTOs
         public int CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
         
-        // Delivery fields
-        public int? DeliverPersonId { get; set; }
-        public DateTime? DeliveryDate { get; set; }
-        public string DeliveryStatus { get; set; }
-        
-        // Navigation info
-        public string DeliverPersonName { get; set; }
+        // Delivery fields moved to delivery-service
     }
 }

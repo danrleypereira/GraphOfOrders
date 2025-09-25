@@ -10,7 +10,7 @@ namespace GraphOfOrders.Repo
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<DeliverPerson> DeliverPersons { get; set; }
+        // DeliverPerson moved to delivery-service project
 
         public OrdersContext(DbContextOptions options) : base(options) { }
 
@@ -44,17 +44,13 @@ namespace GraphOfOrders.Repo
             {
                 entity.HasKey(e => e.OrderId);
                 entity.Property(e => e.OrderDate).IsRequired(); // May not be necessary as DateTime is non-nullable
-                entity.Property(e => e.DeliveryStatus).HasDefaultValue("Pending");
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.OrdersRecords)
                     .HasForeignKey(d => d.BrandId);
                 entity.HasOne(d => d.Customer)
                     .WithMany(b => b.OrdersHistory)
                     .HasForeignKey(d => d.CustomerId);
-                entity.HasOne(d => d.DeliverPerson)
-                    .WithMany(dp => dp.Orders)
-                    .HasForeignKey(d => d.DeliverPersonId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                // Delivery-related configuration moved to delivery-service
             });
 
             modelBuilder.Entity<Customer>(entity =>
@@ -63,13 +59,7 @@ namespace GraphOfOrders.Repo
                 entity.Property(e => e.Email).IsRequired();
             });
 
-            modelBuilder.Entity<DeliverPerson>(entity =>
-            {
-                entity.HasKey(e => e.DeliverPersonId);
-                entity.Property(e => e.Name).IsRequired();
-                entity.Property(e => e.Phone);
-                entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
-            });
+            // DeliverPerson configuration moved to delivery-service
         }
     }
 
