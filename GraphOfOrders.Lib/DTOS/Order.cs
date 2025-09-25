@@ -8,5 +8,7 @@ namespace GraphOfOrders.Lib.DTOs
         public int BrandId { get; set; }
         public int CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
+        
+        // Delivery fields moved to delivery-service
     }
 }

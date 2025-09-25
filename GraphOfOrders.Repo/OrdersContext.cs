@@ -9,7 +9,8 @@ namespace GraphOfOrders.Repo
         public DbSet<Product> Products { get; set; }
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<Customer> Customers { get; set;}
+        public DbSet<Customer> Customers { get; set; }
+        // DeliverPerson moved to delivery-service project
 
         public OrdersContext(DbContextOptions options) : base(options) { }
 
@@ -49,6 +50,7 @@ namespace GraphOfOrders.Repo
                 entity.HasOne(d => d.Customer)
                     .WithMany(b => b.OrdersHistory)
                     .HasForeignKey(d => d.CustomerId);
+                // Delivery-related configuration moved to delivery-service
             });
 
             modelBuilder.Entity<Customer>(entity =>
@@ -56,6 +58,8 @@ namespace GraphOfOrders.Repo
                 entity.HasKey(e => e.CustomerId);
                 entity.Property(e => e.Email).IsRequired();
             });
+
+            // DeliverPerson configuration moved to delivery-service
         }
     }
 

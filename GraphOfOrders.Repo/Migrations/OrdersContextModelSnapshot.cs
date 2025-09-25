@@ -81,6 +81,31 @@ namespace GraphOfOrders.Repo.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("GraphOfOrders.Lib.Entities.DeliverPerson", b =>
+                {
+                    b.Property<int>("DeliverPersonId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DeliverPersonId"));
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.HasKey("DeliverPersonId");
+
+                    b.ToTable("DeliverPersons");
+                });
+
             modelBuilder.Entity("GraphOfOrders.Lib.Entities.Order", b =>
                 {
                     b.Property<int>("OrderId")
@@ -95,6 +120,17 @@ namespace GraphOfOrders.Repo.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("DeliverPersonId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeliveryStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Pending");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -103,6 +139,8 @@ namespace GraphOfOrders.Repo.Migrations
                     b.HasIndex("BrandId");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("DeliverPersonId");
 
                     b.ToTable("Orders");
                 });
@@ -154,9 +192,16 @@ namespace GraphOfOrders.Repo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GraphOfOrders.Lib.Entities.DeliverPerson", "DeliverPerson")
+                        .WithMany("Orders")
+                        .HasForeignKey("DeliverPersonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Brand");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("DeliverPerson");
                 });
 
             modelBuilder.Entity("GraphOfOrders.Lib.Entities.Product", b =>
@@ -183,6 +228,11 @@ namespace GraphOfOrders.Repo.Migrations
             modelBuilder.Entity("GraphOfOrders.Lib.Entities.Customer", b =>
                 {
                     b.Navigation("OrdersHistory");
+                });
+
+            modelBuilder.Entity("GraphOfOrders.Lib.Entities.DeliverPerson", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("GraphOfOrders.Lib.Entities.Product", b =>

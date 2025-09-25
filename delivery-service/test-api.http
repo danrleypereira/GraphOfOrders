@@ -1,0 +1,142 @@
+### Delivery Service API Tests
+### Run with REST Client extension in VS Code or similar tools
+
+### Variables
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+### ============= HEALTH CHECKS =============
+
+### Health Check - Overall
+GET {{baseUrl}}/health
+
+### Health Check - Database Only
+GET {{baseUrl}}/health/db
+
+### ============= DELIVERY PERSON =============
+
+### Get All Delivery Persons
+GET {{baseUrl}}/deliveryPerson
+
+### Get Active Delivery Persons
+GET {{baseUrl}}/deliveryPerson/active
+
+### Get Delivery Person by ID
+GET {{baseUrl}}/deliveryPerson/1
+
+### Create Delivery Person
+POST {{baseUrl}}/deliveryPerson
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe",
+  "phone": "555-0123",
+  "email": "john.doe@example.com",
+  "isActive": true
+}
+
+### Update Delivery Person
+PUT {{baseUrl}}/deliveryPerson/1
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe Updated",
+  "phone": "555-0123",
+  "email": "john.doe.updated@example.com",
+  "isActive": true
+}
+
+### Delete Delivery Person
+DELETE {{baseUrl}}/deliveryPerson/1
+
+### ============= DELIVERY ORDERS =============
+
+### Create Order from Monolith
+POST {{baseUrl}}/deliveryOrder
+Content-Type: {{contentType}}
+
+{
+  "orderId": 1001,
+  "customerId": 2001,
+  "category": "Electronics",
+  "idempotencyToken": "order-create-{{$timestamp}}",
+  "snapshot": {
+    "totalAmount": 299.99,
+    "items": ["Laptop", "Mouse"],
+    "shippingAddress": "123 Main St, City, Country",
+    "customerName": "Jane Customer"
+  }
+}
+
+### Create Another Order (Food Category)
+POST {{baseUrl}}/deliveryOrder
+Content-Type: {{contentType}}
+
+{
+  "orderId": 1002,
+  "customerId": 2002,
+  "category": "Food",
+  "idempotencyToken": "order-create-food-{{$timestamp}}",
+  "snapshot": {
+    "totalAmount": 45.50,
+    "items": ["Pizza", "Soda"],
+    "shippingAddress": "456 Oak Ave, City, Country",
+    "customerName": "Bob Smith"
+  }
+}
+
+### Get All Available Orders
+GET {{baseUrl}}/deliveryOrder
+
+### Get Available Orders by Category
+GET {{baseUrl}}/deliveryOrder?category=Electronics
+
+### Get Specific Order
+GET {{baseUrl}}/deliveryOrder/1001/2001
+
+### Assign Delivery Person to Order
+POST {{baseUrl}}/deliveryOrder/1001/2001/assign
+Content-Type: {{contentType}}
+
+{
+  "deliveryPersonId": 1,
+  "idempotencyToken": "assign-{{$timestamp}}"
+}
+
+### Update Order Status
+PUT {{baseUrl}}/deliveryOrder/1001/2001/status
+Content-Type: {{contentType}}
+
+{
+  "status": "InTransit"
+}
+
+### Update Order Status to Delivered
+PUT {{baseUrl}}/deliveryOrder/1001/2001/status
+Content-Type: {{contentType}}
+
+{
+  "status": "Delivered"
+}
+
+### Get Orders by Delivery Person
+GET {{baseUrl}}/deliveryOrder/deliveryPerson/1
+
+### ============= TEST SCENARIOS =============
+
+### Scenario 1: Complete Order Flow
+### 1. Create delivery person
+### 2. Create order
+### 3. Get available orders
+### 4. Assign delivery person
+### 5. Update status to InTransit
+### 6. Update status to Delivered
+
+### Scenario 2: Test Idempotency
+### Run the same create order request twice with same idempotencyToken
+### Should return same result without creating duplicate
+
+### Scenario 3: Category Filtering
+### 1. Create orders in different categories
+### 2. Filter by specific category
+### 3. Verify only matching orders are returned
