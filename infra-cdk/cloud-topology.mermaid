@@ -1,0 +1,113 @@
+graph TB
+    %% Internet and External Access
+    Internet([Internet])
+    
+    %% AWS Cloud boundary
+    subgraph AWS["☁️ AWS Cloud"]
+        
+        %% API Gateway (Managed Service - outside VPC)
+        APIGW["🌐 API Gateway<br/>(HTTP API)<br/>Public Endpoint"]
+        
+        %% VPC boundary
+        subgraph VPC["🔒 VPC (delivery-vpc)"]
+            
+            %% Availability Zones
+            subgraph AZ1["📍 Availability Zone 1"]
+                subgraph PubSub1["🌍 Public Subnet"]
+                    NAT1["🚪 NAT Gateway"]
+                end
+                
+                subgraph PrivSub1["🔒 Private Subnet<br/>(PRIVATE_WITH_EGRESS)"]
+                    VPCLink1["🔗 VPC Link<br/>Endpoint"]
+                    ALB1["⚖️ Application<br/>Load Balancer<br/>(Internal)"]
+                    ECS1["🐳 ECS Fargate<br/>Task 1"]
+                    RDS1["🗄️ RDS PostgreSQL<br/>(Primary)"]
+                end
+            end
+            
+            subgraph AZ2["📍 Availability Zone 2"]
+                subgraph PubSub2["🌍 Public Subnet"]
+                    PubPlaceholder2["Public Resources"]
+                end
+                
+                subgraph PrivSub2["🔒 Private Subnet<br/>(PRIVATE_WITH_EGRESS)"]
+                    VPCLink2["🔗 VPC Link<br/>Endpoint"]
+                    ECS2["🐳 ECS Fargate<br/>Task 2"]
+                end
+            end
+            
+            %% Internet Gateway
+            IGW["🌐 Internet Gateway"]
+            
+            %% ECS Cluster (logical grouping)
+            subgraph Cluster["🎯 ECS Cluster (delivery-cluster)"]
+                ECS1
+                ECS2
+            end
+            
+            %% Security Groups (logical representation)
+            subgraph SecurityGroups["🛡️ Security Groups"]
+                SG_ALB["ALB SG:<br/>Allow HTTP:80 from anywhere"]
+                SG_ECS["ECS SG:<br/>Allow :8080 from ALB"]
+                SG_RDS["RDS SG:<br/>Allow :5432 from ECS"]
+            end
+        end
+        
+        %% Secrets Manager and SSM (AWS Managed Services)
+        SecretsManager["🔐 AWS Secrets Manager<br/>(DB Credentials)"]
+        SSMParameter["📋 SSM Parameter Store<br/>(Configuration)"]
+        CloudWatch["📊 CloudWatch Logs"]
+    end
+    
+    %% Client
+    Client["👤 Client Application<br/>(Web/Mobile)"]
+    
+    %% Connections - External
+    Client --> Internet
+    Internet --> APIGW
+    
+    %% Connections - API Gateway to VPC
+    APIGW -.->|"Private Connection<br/>via VPC Link"| VPCLink1
+    APIGW -.->|"Private Connection<br/>via VPC Link"| VPCLink2
+    
+    %% Connections - Within VPC
+    IGW --> PubSub1
+    IGW --> PubSub2
+    NAT1 --> IGW
+    
+    VPCLink1 --> ALB1
+    VPCLink2 --> ALB1
+    ALB1 --> ECS1
+    ALB1 --> ECS2
+    ECS1 --> RDS1
+    ECS2 --> RDS1
+    
+    %% Outbound internet access for ECS (for downloads, external APIs)
+    ECS1 -.->|"Outbound Only<br/>(Updates, APIs)"| NAT1
+    ECS2 -.->|"Outbound Only<br/>(Updates, APIs)"| NAT1
+    
+    %% AWS Managed Services connections
+    ECS1 -.-> SecretsManager
+    ECS2 -.-> SecretsManager
+    ECS1 -.-> SSMParameter
+    ECS2 -.-> SSMParameter
+    ECS1 -.-> CloudWatch
+    ECS2 -.-> CloudWatch
+    ALB1 -.-> CloudWatch
+    
+    %% Security Group associations (visual representation)
+    SG_ALB -.-> ALB1
+    SG_ECS -.-> ECS1
+    SG_ECS -.-> ECS2
+    SG_RDS -.-> RDS1
+    
+    %% Styling
+    classDef publicSubnet fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef privateSubnet fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef managedService fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef securityGroup fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    
+    class PubSub1,PubSub2 publicSubnet
+    class PrivSub1,PrivSub2 privateSubnet
+    class APIGW,SecretsManager,SSMParameter,CloudWatch managedService
+    class SecurityGroups,SG_ALB,SG_ECS,SG_RDS securityGroup

@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Client as 👤 Client App
+    participant APIGW as 🌐 API Gateway
+    participant ALB as ⚖️ ALB
+    participant ECS as 🐳 ECS Fargate
+    participant RDS as 🗄️ PostgreSQL
+
+    Client->>APIGW: POST /deliveryOrder
+    APIGW->>ALB: Forward request
+    ALB->>ECS: Forward to container
+    ECS->>RDS: INSERT delivery order
+    RDS-->>ECS: DB response
+    ECS-->>ALB: Response (success or error)
+    ALB-->>APIGW: Response
+    APIGW-->>Client: HTTP Response
